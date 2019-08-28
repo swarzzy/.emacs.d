@@ -113,23 +113,6 @@
   (interactive)
   (insert "\t"))
 
-(defun compile-it ()
-  "Make the current build."
-  (interactive)
-  (setq default-directory "a:/dev/aberration/")
-  (save-buffer)
-  (compile "project\\build.bat")
-  (other-window 1))
-
-
-(defun show-funcs ()
-  "Make the current build."
-  (interactive)
-  (setq default-directory "a:/dev/aberration/")
-  (save-buffer)
-  (compile (format "project\\funcs.bat \"%s\"" buffer-file-name))
-  (other-window 1))
-
 ;; Cut region or whole line if nothing selected
 (defun xah-cut-line-or-region ()
   "Cut current line, or text selection.
@@ -219,6 +202,11 @@ Version 2017-11-01"
  (modify-face 'font-lock-important-face "Yellow" nil nil t nil t nil nil)
  (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
 
+(defun grep-cpp ()
+  (interactive)
+  (grep (format "findstr -s -n -i -l %s *.h *.cpp" (read-string "Find: ")))
+  (other-window 1))
+
 ;;;;;;;;;;; SETTINGS
 
 (prefer-coding-system 'cp1251)
@@ -257,7 +245,7 @@ Version 2017-11-01"
 (setq undo-strong-limit 40000000)
 
 (setq inhibit-startup-message t)
-(setq default-directory "a:/dev/aberration/")
+
 
 ;; Setting TABS
 ;; set default tab char's display width to 4 spaces
@@ -267,10 +255,10 @@ Version 2017-11-01"
 (setq tab-width 4)
 
 ;; brackets highlighting settings
-(set-face-background 'show-paren-match-face "#3E4451")
-(set-face-attribute 'show-paren-match-face nil 
-                    :weight 'normal :underline nil :overline nil :slant 'normal)
-(paren-activate)
+;;(set-face-background 'show-paren-match-face "#3E4451")
+;;(set-face-attribute 'show-paren-match-face nil 
+ ;;                   :weight 'normal :underline nil :overline nil ;;:slant 'normal)
+;;(paren-activate)
 
 ;; Scroll step
 (setq scroll-step 1)
@@ -300,6 +288,7 @@ Version 2017-11-01"
 (lambda ()
 (local-set-key (kbd "C-d") nil)))
 
+(set-variable 'grep-command "findstr -s -n -i -l ")
 ;;;;;;;;;;; KEYBINDINGS
 
 (global-set-key (kbd "M-<up>") nil)
@@ -382,6 +371,29 @@ Version 2017-11-01"
 ;;(global-set-key (kbd "C-x )") 'kmacro-end-macro)
 ;;(global-set-key (kbd "C-x )") 'kmacro-end-and-call-macro)
 
+;;;;;;; WORKING DIRECTORY
+(defvar working-dir)
+
+(defun set-working-dir ()
+  (interactive)
+  (setq working-dir (read-directory-name "Working dir: "))
+  )
+
+(defun show-working-dir ()
+  (message working-dir))
+
+(set-working-dir)
+(show-working-dir)
+
+(setq default-directory working-dir)
+
+(defun compile-it ()
+  "Make the current build."
+  (interactive)
+  (setq default-directory working-dir)
+  (save-buffer)
+  (compile "build.bat")
+  (other-window 1))
 
 ;; irony
 ;;(add-hook 'c++-mode-hook 'irony-mode)
