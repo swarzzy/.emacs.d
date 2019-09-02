@@ -1,51 +1,16 @@
-(require 'package)
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                    (not (gnutls-available-p))))
-       (proto (if no-ssl "http" "https")))
-  ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
- ;;(add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
-  (add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
-  (when (< emacs-major-version 24)
-    ;; For important compatibility libraries like cl-lib
-    (add-to-list 'package-archives (cons "gnu" (concat proto "://elpa.gnu.org/packages/")))))
-(package-initialize)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(c-offsets-alist
-   (quote
-	((brace-list-open . 0)
-	 (brace-list-close . 0)
-	 (brace-list-intro . 0)
-	 (brace-list-entry . 0))))
- '(custom-safe-themes
-   (quote
-	("ef04dd1e33f7cbd5aa3187981b18652b8d5ac9e680997b45dc5d00443e6a46e3" "152c9642180cb0907bfe7c343ed07d0586c0d84fd8e7279d90566088989a13bb" "1e9001d2f6ffb095eafd9514b4d5974b720b275143fbc89ea046495a99c940b0" "eae831de756bb480240479794e85f1da0789c6f2f7746e5cc999370bbc8d9c8a" "16dd114a84d0aeccc5ad6fd64752a11ea2e841e3853234f19dc02a7b91f5d661" "8150ded55351553f9d143c58338ebbc582611adc8a51946ca467bd6fa35a1075" "446cc97923e30dec43f10573ac085e384975d8a0c55159464ea6ef001f4a16ba" "36282815a2eaab9ba67d7653cf23b1a4e230e4907c7f110eebf3cdf1445d8370" "0c3b1358ea01895e56d1c0193f72559449462e5952bded28c81a8e09b53f103f" "cc71cf67745d023dd2e81f69172888e5e9298a80a2684cbf6d340973dd0e9b75" "bf5bdab33a008333648512df0d2b9d9710bdfba12f6a768c7d2c438e1092b633" "2a7beed4f24b15f77160118320123d699282cbf196e0089f113245d4b729ba5d" "bf798e9e8ff00d4bf2512597f36e5a135ce48e477ce88a0764cfb5d8104e8163" "c9ddf33b383e74dac7690255dd2c3dfa1961a8e8a1d20e401c6572febef61045" "36ca8f60565af20ef4f30783aa16a26d96c02df7b4e54e9900a5138fb33808da" "f39257aa5e82e3b9d5aa402a83769c4354de7b1b99eb48a89ffa7bed74fdd358" "a24c5b3c12d147da6cef80938dca1223b7c7f70f2f382b26308eba014dc4833a" "77b826c13b7571d6147d9fbe6fe88661e7fc72b22271cf553346d1ba63034401" "bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" "59171e7f5270c0f8c28721bb96ae56d35f38a0d86da35eab4001aebbd99271a8" default)))
- '(global-yascroll-bar-mode t)
- '(package-selected-packages
-   (quote
-	(helm-core helm-etags-plus helm rust-mode solarized-theme atom-one-dark-theme rg pt base16-theme auto-complete projectile ## company-irony irony mic-paren spacemacs-theme)))
- '(yascroll:delay-to-hide nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-
 (setq package-check-signature nil)
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
-;;;;;;;;;;; MODES
+(require 'projectile)
+(require 'popup)
+(require 'auto-complete)
+(require 'cl)
+(require 'whole-line-or-region)
+;;(require 'yascroll)
 
-;;(require 'wakib-keys)
-;;(wakib-keys 1)
-
-;; TODO, FIXME, ... highlighting
-;;(require 'fic-mode)
-;;(add-hook 'c++-mode-hook 'turn-on-fic-mode)
+(require 'comint)  ; comint-mode-map
+(require 'dired-x) ; dired-jump
+(require 'ido)     ; ido-completion-map
 
 ;; Turn off the toolbar
 (tool-bar-mode -1)
@@ -56,10 +21,6 @@
 (ido-mode t)
 (setq ido-enable-flex-matching t)
 
-(require 'comint)  ; comint-mode-map
-(require 'dired-x) ; dired-jump
-(require 'ido)     ; ido-completion-map
-
 (set-default 'truncate-lines t)
 (add-hook 'compilation-mode-hook (lambda () (setq truncate-lines nil)))
 ;; Scrollbar
@@ -67,14 +28,12 @@
 
 ;; Enable brackets highlighting
 (show-paren-mode 1)
-(electric-pair-mode 1)
+;;(electric-pair-mode 1)
 
 ;; Delete selected when start typing
 (delete-selection-mode 1)
 
-(require 'cl)
-(require 'yascroll)
-(global-yascroll-bar-mode)
+;;(global-yascroll-bar-mode)
 
 (global-auto-complete-mode t)
 
@@ -112,59 +71,6 @@
   "Insert a tab char. (ASCII 9, \t)"
   (interactive)
   (insert "\t"))
-
-;; Cut region or whole line if nothing selected
-(defun xah-cut-line-or-region ()
-  "Cut current line, or text selection.
-When `universal-argument' is called first, cut whole buffer (respects `narrow-to-region').
-
-URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
-Version 2015-06-10"
-  (interactive)
-  (if current-prefix-arg
-      (progn ; not using kill-region because we don't want to include previous kill
-        (kill-new (buffer-string))
-        (delete-region (point-min) (point-max)))
-    (progn (if (use-region-p)
-               (kill-region (region-beginning) (region-end) t)
-             (kill-region (line-beginning-position) (line-beginning-position 2))))))
-
-;; Copy region or whole line if nothing selected. If called again, it'll append-copy next line.
-(defun xah-copy-line-or-region ()
-  "Copy current line, or text selection.
-When called repeatedly, append copy subsequent lines.
-When `universal-argument' is called first, copy whole buffer (respects `narrow-to-region').
-
-URL `http://ergoemacs.org/emacs/emacs_copy_cut_current_line.html'
-Version 2018-09-10"
-  (interactive)
-  (if current-prefix-arg
-      (progn
-        (copy-region-as-kill (point-min) (point-max)))
-    (if (use-region-p)
-        (progn
-          (copy-region-as-kill (region-beginning) (region-end)))
-      (if (eq last-command this-command)
-          (if (eobp)
-              (progn )
-            (progn
-              (kill-append "\n" nil)
-              (kill-append
-               (buffer-substring-no-properties (line-beginning-position) (line-end-position))
-               nil)
-              (progn
-                (end-of-line)
-                (forward-char))))
-        (if (eobp)
-            (if (eq (char-before) 10 )
-                (progn )
-              (progn
-                (copy-region-as-kill (line-beginning-position) (line-end-position))
-                (end-of-line)))
-          (progn
-            (copy-region-as-kill (line-beginning-position) (line-end-position))
-            (end-of-line)
-            (forward-char)))))))
 
 (defun xah-new-empty-buffer ()
   "Create a new empty buffer.
@@ -207,16 +113,23 @@ Version 2017-11-01"
   (grep (format "findstr -s -n -i -l %s *.h *.cpp" (read-string "Find: ")))
   (other-window 1))
 
+(defun untabify-except-makefiles ()
+  "Replace tabs with spaces except in makefiles."
+  (unless (derived-mode-p 'makefile-mode)
+    (untabify (point-min) (point-max))))
+
 ;;;;;;;;;;; SETTINGS
 
 (prefer-coding-system 'cp1251)
 (setq make-backup-files nil)
 
-(load-theme 'spacemacs-dark t)
-
-(set-face-attribute 'default nil :family "Consolas" :height 108)
-(set-face-bold-p 'bold nil)
 (setq-default line-spacing 4)
+
+(add-hook 'before-save-hook 'untabify-except-makefiles)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;; Disable git crap
+(remove-hook 'find-file-hook 'vc-find-file-hook)
 
 ;; Functions highlighting
 (add-hook 'c++-mode-hook (lambda ()
@@ -227,18 +140,6 @@ Version 2017-11-01"
    (font-lock-add-keywords nil '(
       ("\\<\\(\\sw+\\) ?(" 1 'font-lock-function-name-face))t)))
 
-(defun untabify-c++ ()
-  (if (derived-mode-p 'c++-mode)
-      (untabify (point-min) (point-max))))
-
-(defun del-trailing-whitespaces-c++ ()
-  (if (derived-mode-p 'c++-mode)
-    ('delete-trailing-whitespace)))
-
-
-(add-hook 'write-contents-functions 'untabify-c++)
-;;(add-hook 'write-contents-functions 'del-trailing-whitespaces-c++)
-
 ; Stop Emacs from losing undo information by
 ; setting very high limits for undo buffers
 (setq undo-limit 20000000)
@@ -246,19 +147,12 @@ Version 2017-11-01"
 
 (setq inhibit-startup-message t)
 
-
 ;; Setting TABS
 ;; set default tab char's display width to 4 spaces
 (setq-default tab-width 4) ; emacs 23.1 to 26 default to 8
 (setq-default c-basic-offset 4)
 ;; set current buffer's tab char's display width to 4 spaces
 (setq tab-width 4)
-
-;; brackets highlighting settings
-;;(set-face-background 'show-paren-match-face "#3E4451")
-;;(set-face-attribute 'show-paren-match-face nil 
- ;;                   :weight 'normal :underline nil :overline nil ;;:slant 'normal)
-;;(paren-activate)
 
 ;; Scroll step
 (setq scroll-step 1)
@@ -270,13 +164,13 @@ Version 2017-11-01"
 
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
 
-;; y and n instead of yes and no 
+;; y and n instead of yes and no
 (fset 'yes-or-no-p 'y-or-n-p)
 
 (setq c-default-style "linux"
       c-basic-offset 4)
 
-;; Remove C-d keybinding in c-mode 
+;; Remove C-d keybinding in c-mode
 ;; in order to made other C-d keybindings work properly
 (add-hook
 'c++-mode-hook
@@ -307,8 +201,8 @@ Version 2017-11-01"
 
 (global-set-key (kbd "C-0") 'delete-window)
 (global-set-key (kbd "C-1") 'delete-other-windows)
-(global-set-key (kbd "C-2") 'split-window-right)
-(global-set-key (kbd "C-3") 'split-window-below)
+(global-set-key (kbd "C-2") 'split-window-horizontally)
+(global-set-key (kbd "C-3") 'split-window-vertically)
 
 (global-set-key (kbd "M-w") 'other-window)
 
@@ -348,15 +242,15 @@ Version 2017-11-01"
 
 ;;(global-set-key  (kbd "C-u")  'undo)
 ;;(define-key c-mode-base-map (kbd "C-d") nil)
-(global-set-key  (kbd "C-d")  'xah-cut-line-or-region)
+(global-set-key  (kbd "C-d")  'whole-line-or-region-kill-region)
 (global-set-key  (kbd "M-<backspace>")  'kill-line)
-(global-set-key  (kbd "C-y")  'xah-copy-line-or-region)
+(global-set-key  (kbd "C-y")  'whole-line-or-region-copy-region-as-kill)
 
 ;;(define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 ;;(define-key projectile-mode-map (kbd "C-p") 'projectile-command-map)
 
 (global-set-key  (kbd "C-f")  'projectile-find-file)
-(global-set-key  (kbd "M-f")  'projectile-find-other-file)
+(global-set-key  (kbd "M-f")  'ff-find-other-file)
 (global-set-key  (kbd "C-n")  'xah-new-empty-buffer)
 (global-set-key  (kbd "C-o")  'find-file)
 (global-set-key  (kbd "C-<next>")  'next-buffer)
@@ -394,6 +288,107 @@ Version 2017-11-01"
   (save-buffer)
   (compile "build.bat")
   (other-window 1))
+
+;; My color scheme (based on Spacemacs dark theme)
+
+(set-face-attribute 'default nil :family "Consolas" :height 108)
+(set-face-bold-p 'bold nil)
+
+(defvar bg1 "#222222")
+(defvar bg2 "#212026")
+(defvar bg3 "#100a14")
+(defvar bg4 "#0a0814")
+(defvar base "#b2b2b2")
+(defvar base-dim "#686868")
+(defvar border "#5d4d7a")
+(defvar suc "#86dc2f")
+(defvar err "#e0211d")
+(defvar keyword "#4f97d7")
+(defvar comment "#2aa1ae")
+(defvar const "#a45bad")
+(defvar meta "#9f8766")
+(defvar func "#bc6ec5")
+(defvar keyword "#4f97d7")
+(defvar str "#2d9574")
+(defvar type "#ce537a")
+(defvar var "#7590db")
+(defvar cursor "#e3dedd")
+(defvar war "#dC752F")
+(defvar highlight "#444155")
+(defvar mat "#86dc2f")
+(defvar green-bg-s "#29422d")
+(defvar comp "#c56ec3")
+(defvar act1 "#222226")
+(defvar act2 "#5d4d7a")
+(defvar ttip "#9a9aba")
+(defvar ttip-bg "#34323e")
+(defvar ttip-sl "#5e5079")
+(defvar green "#67b11d")
+(defvar green-bg "#293235")
+(defvar green-bg-s "#29422d")
+(defvar yellow "#b1951d")
+(defvar comp "c56ec3")
+
+(set-face-attribute 'font-lock-builtin-face nil :foreground keyword)
+(set-face-attribute 'font-lock-comment-face nil :foreground comment)
+(set-face-attribute 'font-lock-constant-face nil :foreground const)
+(set-face-attribute 'font-lock-doc-face nil :foreground meta)
+(set-face-attribute 'font-lock-function-name-face nil :foreground func)
+(set-face-attribute 'font-lock-keyword-face nil :foreground keyword)
+(set-face-attribute 'font-lock-string-face nil :foreground str)
+(set-face-attribute 'font-lock-type-face nil :foreground type :bold t)
+(set-face-attribute 'font-lock-variable-name-face nil :foreground var)
+(set-face-attribute 'cursor nil :background cursor)
+(set-face-attribute 'custom-button nil :background bg2 :foreground base)
+(set-face-attribute 'default nil :background bg1 :foreground base)
+;;(set-face-attribute 'error nil :foreground err)
+;;(set-face-attribute 'eval-sexp-fu-flash nil :background suc :foreground bg1)
+;;(set-face-attribute 'eval-sexp-fu-flash-error nil :background err :foreground bg1)
+(set-face-attribute 'font-lock-negation-char-face nil :foreground const)
+(set-face-attribute 'font-lock-preprocessor-face nil :foreground func)
+(set-face-attribute 'font-lock-warning-face nil :foreground war :background bg1)
+(set-face-attribute 'fringe nil :foreground base :background bg1)
+(set-face-attribute 'header-line nil :background bg4)
+(set-face-attribute 'highlight nil :foreground base :background highlight)
+;;(set-face-attribute 'hl-line nil :foreground bg2)
+(set-face-attribute 'isearch nil :foreground bg1 :background mat)
+(set-face-attribute 'lazy-highlight nil :foreground base :background green-bg-s)
+(set-face-attribute 'link nil :foreground comment :underline t)
+(set-face-attribute 'link-visited nil :foreground comp :underline t)
+(set-face-attribute 'match nil :background highlight :foreground mat)
+;;(set-face-attribute 'page-break-lines nil :foreground act2)
+(set-face-attribute 'region nil :background highlight)
+(set-face-attribute 'secondary-selection nil :background bg3)
+(set-face-attribute 'shadow nil :foreground base-dim)
+;;(set-face-attribute 'success nil :foreground suc)
+(set-face-attribute 'tooltip nil :background ttip-sl :foreground base :bold nil :italic nil :underline nil)
+(set-face-attribute 'vertical-border nil :foreground border)
+;;(set-face-attribute 'warning nil :foreground war)
+(set-face-attribute 'minibuffer-prompt nil :foreground keyword :bold t)
+
+
+(set-face-attribute 'mode-line nil :background act1 :foreground base :box border)
+(set-face-attribute 'mode-line-buffer-id nil :foreground func)
+(set-face-attribute 'mode-line-inactive nil :background bg1 :foreground base :box border)
+
+(set-face-attribute 'ido-first-match nil :foreground comp :bold t)
+(set-face-attribute 'ido-only-match nil :foreground mat :bold t)
+(set-face-attribute 'ido-subdir nil :foreground keyword)
+
+;;(set-face-attribute 'popup-enu-selection-face nil :background ttip-sl :foreground base)
+(set-face-attribute 'popup-face nil :background ttip-bg :foreground ttip)
+;;(set-face-attribute 'popup-isearch-match nil :match t)
+;;(set-face-attribute 'popup-menu-mouse-face nil :highlight t)
+(set-face-attribute 'popup-scroll-bar-background-face nil :background bg2)
+(set-face-attribute 'popup-scroll-bar-foreground-face nil :background act2)
+(set-face-attribute 'popup-tip-face nil :background ttip-sl :foreground base :bold nil :italic nil :underline nil)
+
+(set-face-attribute 'show-paren-match nil :foreground mat :background highlight :bold t :underline t)
+;;(set-face-attribute 'show-paren-match-expression nil :background green-bg-s)
+(set-face-attribute 'show-paren-mismatch nil :foreground err :bold t :underline t)
+
+;;(setk-face-attribute 'ido-vertical-match-face nil :foreground comp, :underline nil)
+
 
 ;; irony
 ;;(add-hook 'c++-mode-hook 'irony-mode)
