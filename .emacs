@@ -6,7 +6,8 @@
 (require 'auto-complete)
 (require 'cl)
 (require 'whole-line-or-region)
-;;(require 'yascroll)
+(require 'yascroll)
+(require 'modern-cpp-font-lock)
 
 (require 'comint)  ; comint-mode-map
 (require 'dired-x) ; dired-jump
@@ -23,17 +24,18 @@
 
 (set-default 'truncate-lines t)
 (add-hook 'compilation-mode-hook (lambda () (setq truncate-lines nil)))
+
 ;; Scrollbar
 (scroll-bar-mode -1)
 
 ;; Enable brackets highlighting
 (show-paren-mode 1)
-;;(electric-pair-mode 1)
+(electric-pair-mode 1)
 
 ;; Delete selected when start typing
 (delete-selection-mode 1)
 
-;;(global-yascroll-bar-mode)
+(global-yascroll-bar-mode)
 
 (global-auto-complete-mode t)
 
@@ -42,29 +44,6 @@
 (projectile-mode +1)
 
 ;;;;;;;;;;; USEFULL FUNCTIONS
-
-(defun move-line (n)
-  "Move the current line up or down by N lines."
-  (interactive "p")
-  (setq col (current-column))
-  (beginning-of-line) (setq start (point))
-  (end-of-line) (forward-char) (setq end (point))
-  (let ((line-text (delete-and-extract-region start end)))
-    (forward-line n)
-    (insert line-text)
-    ;; restore point to original column in moved line
-    (forward-line -1)
-    (forward-char col)))
-
-(defun move-line-up (n)
-  "Move the current line up by N lines."
-  (interactive "p")
-  (move-line (if (null n) -1 (- n))))
-
-(defun move-line-down (n)
-  "Move the current line down by N lines."
-  (interactive "p")
-  (move-line (if (null n) 1 n)))
 
 ;; just insert tab
 (defun my-insert-tab-char ()
@@ -88,26 +67,6 @@ Version 2017-11-01"
     $buf
     ))
 
-;; Stealing some stuff from Casey Muratori config
-; Bright-red TODOs from Casey config
- (setq fixme-modes '(c++-mode c-mode emacs-lisp-mode))
- (make-face 'font-lock-fixme-face)
- (make-face 'font-lock-study-face)
- (make-face 'font-lock-important-face)
- (make-face 'font-lock-note-face)
- (mapc (lambda (mode)
-     (font-lock-add-keywords
-      mode
-      '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
-        ("\\<\\(STUDY\\)" 1 'font-lock-study-face t)
-        ("\\<\\(IMPORTANT\\)" 1 'font-lock-important-face t)
-            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
-    fixme-modes)
- (modify-face 'font-lock-fixme-face "Red" nil nil t nil t nil nil)
- (modify-face 'font-lock-study-face "Yellow" nil nil t nil t nil nil)
- (modify-face 'font-lock-important-face "Yellow" nil nil t nil t nil nil)
- (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
-
 (defun grep-cpp ()
   (interactive)
   (grep (format "findstr -s -n -i -l %s *.h *.cpp" (read-string "Find: ")))
@@ -127,6 +86,9 @@ Version 2017-11-01"
 
 (add-hook 'before-save-hook 'untabify-except-makefiles)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+;;(add-hook 'c-mode-hook 'modern-cpp-font-lock-mode)
+;;(add-hook 'c++-mode-hook 'modern-cpp-font-lock-mode)
 
 ;; Disable git crap
 (remove-hook 'find-file-hook 'vc-find-file-hook)
@@ -182,7 +144,8 @@ Version 2017-11-01"
 (lambda ()
 (local-set-key (kbd "C-d") nil)))
 
-(set-variable 'grep-command "findstr -s -n -i -l ")
+(normal-erase-is-backspace-mode 1)
+
 ;;;;;;;;;;; KEYBINDINGS
 
 (global-set-key (kbd "M-<up>") nil)
@@ -193,9 +156,7 @@ Version 2017-11-01"
 (global-set-key  (kbd "<up>")  nil)
 (global-set-key  (kbd "<down>")  nil)
 
-
-;; Window setup
-
+(global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "TAB") 'my-insert-tab-char)
 (global-set-key (kbd "C-t") 'indent-region)
 
@@ -205,17 +166,12 @@ Version 2017-11-01"
 (global-set-key (kbd "C-3") 'split-window-vertically)
 
 (global-set-key (kbd "M-w") 'other-window)
-
 (global-set-key [f11] 'toggle-menu-bar-mode-from-frame)
-
 (global-set-key (kbd "C-S-b") 'buffer-menu-other-window)
-
 (global-set-key (kbd "C-x C-S-s") 'write-file)
-
 (global-set-key (kbd "C-g") 'goto-line)
 
 (define-key global-map [f7] 'compile-it)
-(define-key global-map [f6] 'show-funcs)
 (define-key global-map [f8] 'next-error)
 (define-key global-map [f9] 'previous-error)
 (define-key global-map [f10] 'first-error)
@@ -235,13 +191,11 @@ Version 2017-11-01"
 (global-set-key  (kbd "C-M-h")  'backward-sexp)
 (global-set-key  (kbd "C-M-l")  'forward-sexp)
 
-;;(global-set-key  (kbd "C-x")  nil)
 (global-set-key  (kbd "C-c")  'forward-word)
 (global-set-key  (kbd "C-u")  'undo)
 (global-set-key  (kbd "C-;")  'universal-argument)
 
-;;(global-set-key  (kbd "C-u")  'undo)
-;;(define-key c-mode-base-map (kbd "C-d") nil)
+(global-set-key  (kbd "<delete>")  'delete-char)
 (global-set-key  (kbd "C-d")  'whole-line-or-region-kill-region)
 (global-set-key  (kbd "M-<backspace>")  'kill-line)
 (global-set-key  (kbd "C-y")  'whole-line-or-region-copy-region-as-kill)
@@ -270,8 +224,7 @@ Version 2017-11-01"
 
 (defun set-working-dir ()
   (interactive)
-  (setq working-dir (read-directory-name "Working dir: "))
-  )
+  (setq working-dir (read-directory-name "Working dir: ")))
 
 (defun show-working-dir ()
   (message working-dir))
@@ -286,7 +239,7 @@ Version 2017-11-01"
   (interactive)
   (setq default-directory working-dir)
   (save-buffer)
-  (compile "build.bat")
+  (compile "build")
   (other-window 1))
 
 ;; My color scheme (based on Spacemacs dark theme)
@@ -336,10 +289,10 @@ Version 2017-11-01"
 (set-face-attribute 'font-lock-function-name-face nil :foreground func)
 (set-face-attribute 'font-lock-keyword-face nil :foreground keyword)
 (set-face-attribute 'font-lock-string-face nil :foreground str)
-(set-face-attribute 'font-lock-type-face nil :foreground type :bold t)
+(set-face-attribute 'font-lock-type-face nil :foreground type :bold nil)
 (set-face-attribute 'font-lock-variable-name-face nil :foreground var)
 (set-face-attribute 'cursor nil :background cursor)
-(set-face-attribute 'custom-button nil :background bg2 :foreground base)
+;;(set-face-attribute 'custom-button nil :background bg2 :foreground base)
 (set-face-attribute 'default nil :background bg1 :foreground base)
 ;;(set-face-attribute 'error nil :foreground err)
 ;;(set-face-attribute 'eval-sexp-fu-flash nil :background suc :foreground bg1)
@@ -366,7 +319,6 @@ Version 2017-11-01"
 ;;(set-face-attribute 'warning nil :foreground war)
 (set-face-attribute 'minibuffer-prompt nil :foreground keyword :bold t)
 
-
 (set-face-attribute 'mode-line nil :background act1 :foreground base :box border)
 (set-face-attribute 'mode-line-buffer-id nil :foreground func)
 (set-face-attribute 'mode-line-inactive nil :background bg1 :foreground base :box border)
@@ -389,44 +341,32 @@ Version 2017-11-01"
 
 ;;(setk-face-attribute 'ido-vertical-match-face nil :foreground comp, :underline nil)
 
+;; Stealing some stuff from Casey Muratori config
 
-;; irony
-;;(add-hook 'c++-mode-hook 'irony-mode)
-;;(add-hook 'c-mode-hook 'irony-mode)
-;;(add-hook 'objc-mode-hook 'irony-mode)
+; Bright-red TODOs from Casey config
+ (setq fixme-modes '(c++-mode c-mode emacs-lisp-mode))
+ (make-face 'font-lock-fixme-face)
+ (make-face 'font-lock-study-face)
+ (make-face 'font-lock-important-face)
+ (make-face 'font-lock-note-face)
+ (mapc (lambda (mode)
+     (font-lock-add-keywords
+      mode
+      '(("\\<\\(TODO\\)" 1 'font-lock-fixme-face t)
+        ("\\<\\(STUDY\\)" 1 'font-lock-study-face t)
+        ("\\<\\(IMPORTANT\\)" 1 'font-lock-important-face t)
+            ("\\<\\(NOTE\\)" 1 'font-lock-note-face t))))
+    fixme-modes)
+ (modify-face 'font-lock-fixme-face "Red" nil nil t nil t nil nil)
+ (modify-face 'font-lock-study-face "Yellow" nil nil t nil t nil nil)
+ (modify-face 'font-lock-important-face "Yellow" nil nil t nil t nil nil)
+ (modify-face 'font-lock-note-face "Dark Green" nil nil t nil t nil nil)
 
-;;(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
 ;; Windows performance tweaks
-;;
-;;(when (boundp 'w32-pipe-read-delay)
-;;  (setq w32-pipe-read-delay 0))
+
+(when (boundp 'w32-pipe-read-delay)
+  (setq w32-pipe-read-delay 0))
 ;; Set the buffer size to 64K on Windows (from the original 4K)
-;;(when (boundp 'w32-pipe-buffer-size)
-;; (setq irony-server-w32-pipe-buffer-size (* 64 1024)))
-
-;;(eval-after-load 'company
-;;  '(add-to-list 'company-backends 'company-irony))
-;;(setq company-idle-delay 0)
-
-;;(add-hook 'after-init-hook 'global-company-mode)
-
-;;(eval-after-load 'flycheck
-;;  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-
-
-
-
-;;(add-hook 'after-init-hook #'global-flycheck-mode)
-
-
-;;(global-auto-complete-mode t)
-
-
-
-
-;;(evil-mode 1)
-;; remove all keybindings from insert-state keymap
-;;(setcdr evil-insert-state-map nil)
-;; but [escape] should switch back to normal state
-;;(define-key evil-insert-state-map [escape] 'evil-normal-state)
+(when (boundp 'w32-pipe-buffer-size)
+(setq irony-server-w32-pipe-buffer-size (* 64 1024)))
