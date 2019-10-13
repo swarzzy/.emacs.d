@@ -8,6 +8,7 @@
 (require 'whole-line-or-region)
 (require 'yascroll)
 (require 'modern-cpp-font-lock)
+(require 'csharp-mode)
 
 (require 'comint)  ; comint-mode-map
 (require 'dired-x) ; dired-jump
@@ -244,10 +245,10 @@ Version 2017-11-01"
 
 ;; My color scheme (based on Spacemacs dark theme)
 
-(set-face-attribute 'default nil :family "Consolas" :height 108)
+(set-face-attribute 'default nil :family "Consolas" :height 105)
 (set-face-bold-p 'bold nil)
 
-(defvar bg1 "#222222")
+(defvar bg1 "#222222") ;; 222222
 (defvar bg2 "#212026")
 (defvar bg3 "#100a14")
 (defvar bg4 "#0a0814")
