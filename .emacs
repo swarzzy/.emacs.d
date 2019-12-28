@@ -1,5 +1,8 @@
 (setq package-check-signature nil)
 (add-to-list 'load-path "~/.emacs.d/lisp/")
+;;(add-to-list 'load-path "~/.emacs.d/lisp/evil/")
+
+;;(require 'evil)
 
 (require 'popup)
 (require 'auto-complete)
@@ -7,6 +10,7 @@
 (require 'yascroll)
 (require 'modern-cpp-font-lock)
 (require 'csharp-mode)
+(require 'rust-mode)
 
 (require 'comint)  ; comint-mode-map
 (require 'dired-x) ; dired-jump
