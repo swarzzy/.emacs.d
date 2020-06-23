@@ -76,6 +76,10 @@
 (set-face-attribute 'show-paren-match nil :foreground mat :background highlight :bold t :underline t)
 (set-face-attribute 'show-paren-mismatch nil :foreground err :bold t :underline t)
 
+;;(set-face-attribute 'company-tooltip nil :background highlight)
+;;(set-face-attribute 'company-scrollbar-bg nil :background base-dim)
+;;(set-face-attribute 'company-scrollbar-fg nil :background ttip-sl)
+
 ; Bright-red TODOs from Casey Muratori config
  (setq fixme-modes '(c++-mode c-mode emacs-lisp-mode))
  (make-face 'font-lock-fixme-face)

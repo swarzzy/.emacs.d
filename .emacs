@@ -11,12 +11,38 @@
 (require 'modern-cpp-font-lock)
 (require 'csharp-mode)
 (require 'rust-mode)
+;(require 'racer)
+;(require 'company)
 
 (require 'comint)  ; comint-mode-map
 (require 'dired-x) ; dired-jump
 (require 'ido)     ; ido-completion-map
 
 (require 'base16-based-color-scheme)
+
+;(require 'company-racer)
+;
+;    (with-eval-after-load 'company
+;       (add-to-list 'company-backends 'company-racer))
+
+;; racer
+;(add-hook 'rust-mode-hook #'racer-mode)
+;(add-hook 'rust-mode-hook #'company-mode)
+;(add-hook 'racer-mode-hook #'eldoc-mode)
+
+
+;;(setq racer-rust-src-path "C:\Users\Dmitry\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\src\rust\src")
+
+;(setq company-idle-delay 999999)
+
+;(define-key rust-mode-map (kbd "TAB") #'company-indent-or-complete-common)
+;(define-key company-active-map (kbd "C-j") 'company-select-next)
+;(define-key company-active-map (kbd "C-k") 'company-select-previous)
+;(define-key company-search-map (kbd "C-j") 'company-select-next)
+;(define-key company-search-map (kbd "C-k") 'company-select-previous)
+;;(define-key company-active-map (kbd "TAB") 'company-complete-common-or-cycle)
+;(define-key company-active-map "\e" 'company-abort)
+;(setq company-tooltip-align-annotations t)
 
 ;; Turn off the toolbar
 (tool-bar-mode -1)
@@ -82,7 +108,7 @@ Version 2017-11-01"
 
 ;;;;;;;;;;; SETTINGS
 
-(prefer-coding-system 'cp1251)
+;;(prefer-coding-system 'cp1251)
 (setq make-backup-files nil)
 
 (setq-default line-spacing 4)
@@ -95,6 +121,11 @@ Version 2017-11-01"
 
 ;; Disable git crap
 (remove-hook 'find-file-hook 'vc-find-file-hook)
+
+(defun my-c++-mode-hook ()
+  ;(setq c-basic-offset 4)
+  (c-set-offset 'inlambda 0))
+(add-hook 'c++-mode-hook 'my-c++-mode-hook)
 
 ;; Functions highlighting
 (add-hook 'c++-mode-hook (lambda ()
